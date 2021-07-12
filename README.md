@@ -8,7 +8,7 @@ This package contains functions to calculate statistical properties of integer p
 
 An [integer partition](https://en.wikipedia.org/wiki/Partition_(number_theory)) is a way to write a positive integer as a sum of positive integers. In an other sense, it is a way we can partiton a set if the elements are indistinguishable.
 
-For a given posizive integer N we are able to list all of its partitions. For example, the partitions of 4 are:
+For a given positive integer N we are able to list all of its partitions. For example, the partitions of 4 are:
  * 1 + 1 + 1 + 1
  * 1 + 1 + 2
  * 2 + 2
@@ -17,17 +17,17 @@ For a given posizive integer N we are able to list all of its partitions. For ex
 
 This package treats integer partitions as set partitions, so for example the integer partition 4=2+2 means that we had an input set of size 4, and we took a partition of that: two subsets, each having size 2.
 
-The [Boltzmann distribution](https://en.wikipedia.org/wiki/Boltzmann_distribution) is a probability distribution used in statistical physics. It assigns a probability to each state based on its energy. This package assumes that the energy of a partition is the sum of the subsets' energies, and that a subset's energy only depends on its size. Then we have some E_i energy values, where i is the subset size. In the Boltzmann distribution we also have a temperature parameter beta. The probability of a partition is then proportional to `exp(-beta*E)`, where `E` is the energy of the partition.
+The [Boltzmann distribution](https://en.wikipedia.org/wiki/Boltzmann_distribution) is a probability distribution used in statistical physics. It assigns a probability to each state based on its energy. This package assumes that the energy of a partition is the sum of the subsets' energies, and that a subset's energy only depends on its size. Then we have some `E_i` energy values, where i is the subset size. In the Boltzmann distribution we also have a temperature parameter `beta`. The probability of a partition is then proportional to `exp(-beta*E)`, where `E` is the energy of the partition.
 
 ## Weights
 
-We can unify the `E_i` and beta constants. To do that, we introduce the weights: `w_i=exp(-beta*E_i)`. Then the probability of a partition is proportional to the product of the weights of its addends.
+We can unify the `E_i` and `beta` constants. To do that, we introduce the weights: `w_i=exp(-beta*E_i)`. Then the probability of a partition is proportional to the product of the weights of its addends.
 
 `w_1` should always be positive, to avoid division by zero.
 
 ## Usage
 
-Wirst you gave to create a calculator object.
+First you have to create a calculator object.
 `import integer_partition_boltzmann`
  * `integer_partition_boltzmann.calculator.for_sympy()` returns a calculator object that you can use for symbolic calculations.
  * `integer_partition_boltzmann.calculator.for_numba()` returns a calculator object that contains functions compiled by the numba library.
@@ -49,7 +49,7 @@ array([1, w1, w1**2 + w2, w1**3 + w1*w2 + w3], dtype=object)
  * The second element is for the set with two elements. The corresponding partitions are 2=1+1 and 2=2. These give the partition functiion `w1**2 + w2`.
  * The partitions of 3 are 3=1+1+1, 3=1+2, 3=3. These correspond to `w1**3 + w1*w2 + w3`.
 
-### Subset quantity expectation values
+### Expected number of subsets with given size
 
 We can ask: if we take a random partition and count the number of subsets which have exactly i elements, what will be the expected value of the result?
 
@@ -72,6 +72,19 @@ array([w2/(w1**2 + w2), 0, w1**2/(w1**2 + w2)], dtype=object)
 ```
 
 We can use the last subsection to explain the result. The 2=1+1 case yields two singleton sets and has probability `w1**2/(w1**2 + w2)`, this explains the 2nd (last) element of the result array. There is no output that has only one singleton set, this explains the middle element. Finally, the case 2=2 has probability `w2/(w1**2 + w2)` and produces no singletons, therefore this is the 0th element of the result.
+
+## Numba support
+
+You can use the same functions on the numba calculator. The only caveat is that the functions only accept float64 arrays in this case. For example:
+
+```
+>>> calc.get_subset_quantity_expectation_values(numpy.array([1.,1.,1.]),numpy.array([1.,1.,1.]))
+array([0. , 2. , 0.5])
+```
+
+## Numerical stability
+
+I did not check the calculations for numerical instabilities. However, if you multiply each weight with a corresponding power, for example: `w_i=w_i*(1.1**i)`, the resulting probabilities should not change (partition functions should change). You can use this fact to get an idea of the instability, or find a magnitude range which works for you.
 
 ## Supported by
 
